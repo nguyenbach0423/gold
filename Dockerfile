@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o mrgold .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o gold .
 
 FROM alpine:latest
 
@@ -18,7 +18,7 @@ RUN apk --no-cache add ca-certificates tzdata && \
 
 WORKDIR /bot
 
-COPY --chown=bot:bot --from=builder /bot/mrgold /bot/mrgold
+COPY --chown=bot:bot --from=builder /bot/gold /bot/gold
 
 USER bot
 
