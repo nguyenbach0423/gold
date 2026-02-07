@@ -223,7 +223,7 @@ func (t *Telegram) handleMessage(wp *workerpool.WorkerPool, message *Message) {
 			}
 
 			t.sendFeedback(fmt.Sprintf("<b>chat_id: %d\n\nusername: %s\n\nfull_name: %s\n\nfeedback: <i>%s</i></b>",
-				message.Chat.ID, message.Chat.Username, message.Chat.LastName+" "+message.Chat.LastName,
+				message.Chat.ID, message.Chat.Username, message.Chat.LastName+" "+message.Chat.FirstName,
 				strings.TrimSpace(strings.TrimPrefix(text, Feedback)),
 			))
 
@@ -1721,7 +1721,10 @@ func (t *Telegram) sendFeedback(feedback string) {
 		&request.Request{
 			Method: http.MethodPost,
 			URL:    t.Ctx.Config.Bot.FeedbackBotURL + "/sendMessage",
-			Body:   reqBody,
+			Headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+			Body: reqBody,
 		},
 	)
 	if err != nil {
