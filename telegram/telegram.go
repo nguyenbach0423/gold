@@ -1154,7 +1154,7 @@ var GoldPriceHistoryFunc = func(ctx *context.Context, chatID int, params ...stri
 
 var FeedbackFunc = func(ctx *context.Context, chatID int, params ...string) (*BotMessage, error) {
 	builder := strings.Builder{}
-	builder.WriteString("<b>Gửi góp ý cải thiện bot theo cú pháp:</b>")
+	builder.WriteString("<b>Gửi góp ý cải thiện bot theo cú pháp</b>")
 	builder.WriteString("\n<i><code>#feedback</code> 'nội dung'</i>")
 	builder.WriteString("\n\n<i>Ví dụ: <code>#feedback</code> thật tuyệt!!!</i>")
 
@@ -1167,7 +1167,7 @@ var FeedbackFunc = func(ctx *context.Context, chatID int, params ...string) (*Bo
 var DonateFunc = func(ctx *context.Context, chatID int, params ...string) (*BotMessage, error) {
 	return &BotMessage{
 		ParseMode: "HTML",
-		Text:      "<b>🌱 Đồng hành cùng 🐶 Cậu Vàng. Quét mã QR để chuyển khoản\n\nXin cảm ơn sự đóng góp của bạn!</b>",
+		Text:      "<b>🌱 Cảm ơn bạn đã đồng hành cùng 🐶 Cậu Vàng!</b>",
 	}, nil
 }
 
