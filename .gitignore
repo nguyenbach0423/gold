@@ -5,6 +5,5 @@ bin/
 cre.json
 goldbot.sqlite
 Makefile
-qr.jpg
 schema.sql
 seed.sql
