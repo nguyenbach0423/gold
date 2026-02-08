@@ -283,7 +283,7 @@ func (t *Telegram) handleFeedback(chat Chat, text string) {
 		log.Error().Err(err).Send()
 	}
 
-	t.sendFeedback(fmt.Sprintf("<b>chat_id: %d\n\nusername: %s\n\nfull_name: %s\n\nfeedback: <i>%s</i></b>",
+	t.sendFeedback(fmt.Sprintf("<b>chat_id: %d\n\nusername: %s\n\nfull_name: %s\n\nfeedback: %s</b>",
 		chat.ID, chat.Username, chat.LastName+" "+chat.FirstName,
 		strings.TrimSpace(strings.TrimPrefix(text, Feedback)),
 	))
