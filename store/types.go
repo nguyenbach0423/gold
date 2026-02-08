@@ -34,6 +34,7 @@ type Chat struct {
 	Username  string
 	FirstName string
 	LastName  string
+	Title     string
 }
 
 type VolatilityNotifSubcription struct {

@@ -1,9 +1,14 @@
 package telegram
 
 type Update struct {
-	ID            int            `json:"update_id"`
-	Message       *Message       `json:"message,omitempty"`
-	CallbackQuery *CallbackQuery `json:"callback_query,omitempty"`
+	ID            int                `json:"update_id"`
+	Message       *Message           `json:"message,omitempty"`
+	CallbackQuery *CallbackQuery     `json:"callback_query,omitempty"`
+	MyChatMember  *ChatMemberUpdated `json:"my_chat_member,omitempty"`
+}
+
+type ChatMemberUpdated struct {
+	Chat Chat `json:"chat"`
 }
 
 type Message struct {
@@ -18,6 +23,7 @@ type Chat struct {
 	Username  string `json:"username,omitempty"`
 	FirstName string `json:"first_name,omitempty"`
 	LastName  string `json:"last_name,omitempty"`
+	Title     string `json:"title,omitempty"`
 }
 
 type CallbackQuery struct {

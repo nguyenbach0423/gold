@@ -179,6 +179,10 @@ func (t *Telegram) HandleUpdate(wp *workerpool.WorkerPool, update *Update) {
 		return
 	}
 
+	if update.MyChatMember != nil {
+		t.handleMyChatMember(update.MyChatMember.Chat)
+	}
+
 	if update.Message != nil {
 		t.handleMessage(wp, update.Message)
 	} else if update.CallbackQuery != nil {
@@ -260,12 +264,26 @@ func (t *Telegram) handleMessage(wp *workerpool.WorkerPool, message *Message) {
 	})
 }
 
-func (t *Telegram) handStartCommand(chat Chat) {
+func (t *Telegram) handleMyChatMember(chat Chat) {
 	if err := t.saveChat(chat); err != nil {
 		log.Error().Err(err).Send()
 	}
 
+	if err := t.SendMessage(SendMessageRequest{
+		ChatID:    chat.ID,
+		ParseMode: "HTML",
+		Text:      fmt.Sprintf("<b>🖐🏻 🐶 Cậu Vàng xin chào nhóm %s\n\nRất vui được đồng hành cùng các thành viên!</b>", chat.Title),
+	}); err != nil {
+		log.Error().Err(err).Send()
+	}
+}
+
+func (t *Telegram) handStartCommand(chat Chat) {
 	if chat.Type == "private" {
+		if err := t.saveChat(chat); err != nil {
+			log.Error().Err(err).Send()
+		}
+
 		if err := t.SendMessage(SendMessageRequest{
 			ChatID:    chat.ID,
 			ParseMode: "HTML",
@@ -330,9 +348,9 @@ func (t *Telegram) handleCallbackQuery(wp *workerpool.WorkerPool, callbackQuery 
 func (t *Telegram) saveChat(chat Chat) error {
 	return t.Ctx.Store.SQL.WithTx(func(tx *sql.Tx) error {
 		_, err := tx.Exec(
-			`insert or ignore into chats (id, type, username, first_name, last_name)
-			values (?, ?, ?, ?, ?)`,
-			chat.ID, chat.Type, chat.Username, chat.FirstName, chat.LastName,
+			`insert or ignore into chats (id, type, username, first_name, last_name, title)
+			values (?, ?, ?, ?, ?, ?)`,
+			chat.ID, chat.Type, chat.Username, chat.FirstName, chat.LastName, chat.Title,
 		)
 
 		return err
