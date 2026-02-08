@@ -27,6 +27,11 @@ type Crawler struct {
 }
 
 func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
+	now := time.Now().In(cr.Ctx.Config.TimeLocation)
+	if now.Weekday() == time.Sunday {
+		return
+	}
+
 	cr.runTasks(
 		wp, bot,
 		func() (bool, error) {
