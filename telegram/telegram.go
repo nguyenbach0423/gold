@@ -383,6 +383,40 @@ var IntroFunc = func(ctx *context.Context, id int, params ...string) (*BotMessag
 	return &BotMessage{
 		ParseMode: "HTML",
 		Text:      builder.String(),
+		ReplyMarkup: &ReplyMarkup{
+			InlineKeyboard: [][]InlineKeyboardButton{
+				{
+					{
+						Text:         "Cập nhật giá vàng mới nhất",
+						CallbackData: LiveCode,
+					},
+				},
+				{
+					{
+						Text:         "Thiết lập thông báo giá vàng",
+						CallbackData: NotifCode,
+					},
+				},
+				{
+					{
+						Text:         "Tra cứu lịch sử giá vàng",
+						CallbackData: HistoryCode,
+					},
+				},
+				{
+					{
+						Text:         "Gửi góp ý cải thiện bot",
+						CallbackData: FeedbackCode,
+					},
+				},
+				{
+					{
+						Text:         "☕︎ Buy me a coffee",
+						CallbackData: DonateCode,
+					},
+				},
+			},
+		},
 	}, nil
 }
 
