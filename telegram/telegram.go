@@ -398,14 +398,12 @@ var LiveFunc = func(ctx *context.Context, chatID int, params ...string) (*BotMes
 			InlineKeyboard: [][]InlineKeyboardButton{
 				{
 					{
-						Text:         "Cập nhật",
-						CallbackData: LiveCode,
-					},
-				},
-				{
-					{
 						Text:         "<< Quay lại",
 						CallbackData: IntroCode,
+					},
+					{
+						Text:         "Cập nhật",
+						CallbackData: LiveCode,
 					},
 				},
 			},
@@ -1162,16 +1160,6 @@ var FeedbackFunc = func(ctx *context.Context, chatID int, params ...string) (*Bo
 	return &BotMessage{
 		ParseMode: "HTML",
 		Text:      builder.String(),
-		ReplyMarkup: &ReplyMarkup{
-			InlineKeyboard: [][]InlineKeyboardButton{
-				{
-					{
-						Text:         "<< Quay lại",
-						CallbackData: IntroCode,
-					},
-				},
-			},
-		},
 	}, nil
 }
 
@@ -1179,16 +1167,6 @@ var DonateFunc = func(ctx *context.Context, chatID int, params ...string) (*BotM
 	return &BotMessage{
 		ParseMode: "HTML",
 		Text:      "<b>🌱 Đồng hành cùng 🐶 Cậu Vàng. Quét mã QR để chuyển khoản\n\nXin cảm ơn sự đóng góp của bạn!</b>",
-		ReplyMarkup: &ReplyMarkup{
-			InlineKeyboard: [][]InlineKeyboardButton{
-				{
-					{
-						Text:         "<< Quay lại",
-						CallbackData: IntroCode,
-					},
-				},
-			},
-		},
 	}, nil
 }
 
