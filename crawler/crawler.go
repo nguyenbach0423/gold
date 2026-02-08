@@ -364,7 +364,7 @@ func (cr *Crawler) saveGoldPrice(priceDate string, goldID, buy, sell int) error 
 				low_sell = case when price_date = excluded.price_date then min(low_sell, excluded.sell) else excluded.sell end,
 				high_sell = case when price_date = excluded.price_date then max(high_sell, excluded.sell) else excluded.sell end
 			where
-		    	excluded.price_date != price_date
+		    	excluded.price_date > price_date
 				or excluded.buy != buy
 				or excluded.sell != sell
 			returning gold_id`,
