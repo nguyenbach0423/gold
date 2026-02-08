@@ -155,7 +155,7 @@ var (
 )
 
 const (
-	Feedback = "#feedback"
+	Feedback = "/send"
 )
 
 var BotCommands = []BotCommand{
@@ -223,21 +223,20 @@ func (t *Telegram) handleMessage(wp *workerpool.WorkerPool, message *Message) {
 
 		var code string
 
-		switch text {
-		case StartCommand.Command:
+		if strings.HasPrefix(text, StartCommand.Command) {
 			t.handStartCommand(message.Chat)
 			code = IntroCode
-		case LiveCommand.Command:
+		} else if strings.HasPrefix(text, LiveCommand.Command) {
 			code = LiveCode
-		case NotifCommand.Command:
+		} else if strings.HasPrefix(text, NotifCommand.Command) {
 			code = NotifCode
-		case HistoryCommand.Command:
+		} else if strings.HasPrefix(text, HistoryCommand.Command) {
 			code = HistoryCode
-		case FeedbackCommand.Command:
+		} else if strings.HasPrefix(text, FeedbackCommand.Command) {
 			code = FeedbackCode
-		case DonateCommand.Command:
+		} else if strings.HasPrefix(text, DonateCommand.Command) {
 			code = DonateCode
-		default:
+		} else {
 			code = IntroCode
 		}
 
@@ -1195,8 +1194,8 @@ var GoldPriceHistoryFunc = func(ctx *context.Context, chatID int, params ...stri
 var FeedbackFunc = func(ctx *context.Context, chatID int, params ...string) (*BotMessage, error) {
 	builder := strings.Builder{}
 	builder.WriteString("<b>Gửi góp ý cải thiện Bot theo cú pháp</b>")
-	builder.WriteString("\n<b><i><code>#feedback</code> 'nội dung'</i></b>")
-	builder.WriteString("\n\n<b><i>Ví dụ: <code>#feedback</code> Bot rất hữu ích!!!</i></b>")
+	builder.WriteString(fmt.Sprintf("\n<b><i><code>%s</code> 'nội dung'</i></b>", Feedback))
+	builder.WriteString(fmt.Sprintf("\n\n<b><i>Ví dụ: <code>%s</code> Bot rất hữu ích!!!</i></b>", Feedback))
 
 	return &BotMessage{
 		ParseMode: "HTML",
