@@ -1886,7 +1886,7 @@ func HandleNewDay(ctx *context.Context) error {
 				low_sell = sell,
 				high_sell = sell
 			where price_date < ?`,
-			now,
+			now, now,
 		); err != nil {
 			return err
 		}
