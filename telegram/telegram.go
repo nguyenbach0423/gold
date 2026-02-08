@@ -837,7 +837,7 @@ var SelectDaysOfWeekFunc = func(ctx *context.Context, chatID int, params ...stri
 		cancelButton,
 	}
 
-	if isNew || saved != unsaved {
+	if isNew || (saved != unsaved) {
 		controlButtons = append(controlButtons, InlineKeyboardButton{
 			Text:         "Hoàn thành",
 			CallbackData: fmt.Sprintf("%s%s%d%s%d%s%s", ConfirmScheduleCode, Separator, saved, Separator, unsaved, Separator, strconv.FormatBool(isNew)),
