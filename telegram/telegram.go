@@ -1642,14 +1642,14 @@ func handleParams(n int, params ...string) (saved, unsaved int, isNew bool, inde
 		}
 	}
 
-	if n == 3 {
+	if n >= 3 {
 		isNew, err = strconv.ParseBool(params[2])
 		if err != nil {
 			return
 		}
 	}
 
-	if n == 4 {
+	if n >= 4 {
 		index, err = strconv.Atoi(params[3])
 	}
 
