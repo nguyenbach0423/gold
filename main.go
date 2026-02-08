@@ -75,6 +75,17 @@ func main() {
 		stop()
 	}
 
+	_, err = c.AddFunc("0 0 0 * * *", func() {
+		handleNewDayErr := telegram.HandleNewDay(appCtx)
+		if handleNewDayErr != nil {
+			log.Error().Err(handleNewDayErr).Send()
+		}
+	})
+	if err != nil {
+		log.Error().Err(err).Send()
+		stop()
+	}
+
 	_, err = c.AddFunc("@every 5m", func() {
 		cr.Run(wp, bot)
 	})

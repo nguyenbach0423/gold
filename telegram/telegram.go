@@ -382,7 +382,7 @@ var IntroFunc = func(ctx *context.Context, id int, params ...string) (*BotMessag
 }
 
 var LiveFunc = func(ctx *context.Context, chatID int, params ...string) (*BotMessage, error) {
-	text, err := board(ctx.Store, "<b>Giá vàng được cập nhật liên tục theo thị trường</b>")
+	text, err := board(ctx, "<b>Giá vàng được cập nhật liên tục theo thị trường</b>")
 	if err != nil {
 		return nil, err
 	}
@@ -1045,6 +1045,23 @@ var GoldPriceHistoryFunc = func(ctx *context.Context, chatID int, params ...stri
 		return nil, nil
 	}
 
+	priceDate := t.Format(time.DateOnly)
+	if goldPrices[0].PriceDate != priceDate {
+		if err = HandleNewDay(ctx); err != nil {
+			return nil, err
+		}
+
+		goldPrice, err := findGoldPriceHistory(ctx.Store, goldID, priceDate)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, nil
+			}
+			return nil, err
+		}
+
+		goldPrices = append([]GoldPriceHistory{*goldPrice}, goldPrices...)
+	}
+
 	builder := strings.Builder{}
 
 	printer := message.NewPrinter(language.English)
@@ -1179,7 +1196,7 @@ var InboxFunc = func(ctx *context.Context, chatID int, params ...string) (*BotMe
 		return nil, nil
 	}
 
-	text, err := board(ctx.Store, params[0])
+	text, err := board(ctx, params[0])
 	if err != nil {
 		return nil, err
 	}
@@ -1214,23 +1231,24 @@ var fns = map[string]func(ctx *context.Context, chatID int, params ...string) (*
 }
 
 type GoldPrice struct {
-	GoldID   int
-	GoldName string
-	RefBuy   int
-	Buy      int
-	LowBuy   int
-	HighBuy  int
-	RefSell  int
-	Sell     int
-	LowSell  int
-	HighSell int
+	GoldID    int
+	GoldName  string
+	PriceDate string
+	RefBuy    int
+	Buy       int
+	LowBuy    int
+	HighBuy   int
+	RefSell   int
+	Sell      int
+	LowSell   int
+	HighSell  int
 }
 
 func fetchGoldPriceLatest(s *store.Store) ([]GoldPrice, error) {
 	var goldPrices []GoldPrice
 
 	if err := s.SQL.QueryRows(
-		`select gold_id, name, ref_buy, buy, low_buy, high_buy, ref_sell, sell, low_sell, high_sell
+		`select gold_id, name, price_date, ref_buy, buy, low_buy, high_buy, ref_sell, sell, low_sell, high_sell
 		from gold_price_latest gpl
 		join golds g on gpl.gold_id = g.id`,
 		func(rows *sql.Rows) error {
@@ -1238,6 +1256,7 @@ func fetchGoldPriceLatest(s *store.Store) ([]GoldPrice, error) {
 			if err := rows.Scan(
 				&goldPrice.GoldID,
 				&goldPrice.GoldName,
+				&goldPrice.PriceDate,
 				&goldPrice.RefBuy,
 				&goldPrice.Buy,
 				&goldPrice.LowBuy,
@@ -1412,6 +1431,38 @@ func fetchGolds(s *store.Store) ([]store.Gold, error) {
 	}
 
 	return golds, nil
+}
+
+func findGoldPriceHistory(s *store.Store, goldID int, priceDate string) (*GoldPriceHistory, error) {
+	goldPrice := &GoldPriceHistory{}
+
+	if err := s.SQL.QueryRow(
+		`select gold_id, name, price_date, buy, low_buy, high_buy, sell, low_sell, high_sell 
+		from gold_price_history gph 
+    	join golds g on gph.gold_id = g.id
+		where gold_id = ? and price_date = ?`,
+		func(row *sql.Row) error {
+			return row.Scan(
+				&goldPrice.GoldID,
+				&goldPrice.GoldName,
+				&goldPrice.PriceDate,
+				&goldPrice.Buy,
+				&goldPrice.LowBuy,
+				&goldPrice.HighBuy,
+				&goldPrice.Sell,
+				&goldPrice.LowSell,
+				&goldPrice.HighSell,
+			)
+		},
+		goldID, priceDate,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return goldPrice, nil
 }
 
 type GoldPriceHistory struct {
@@ -1592,8 +1643,8 @@ func page(code string, saved, unsaved, index, n int, isNew bool) []InlineKeyboar
 	return buttons
 }
 
-func board(s *store.Store, title string) (string, error) {
-	goldPrices, err := fetchGoldPriceLatest(s)
+func board(ctx *context.Context, title string) (string, error) {
+	goldPrices, err := fetchGoldPriceLatest(ctx.Store)
 	if err != nil {
 		return "", err
 	}
@@ -1602,13 +1653,28 @@ func board(s *store.Store, title string) (string, error) {
 		return "", nil
 	}
 
+	now := time.Now().In(ctx.Config.TimeLocation).Format(time.DateOnly)
+
 	builder := strings.Builder{}
 
 	builder.WriteString(title)
 
 	printer := message.NewPrinter(language.English)
 
+	var syncNewDay bool
 	for _, goldPrice := range goldPrices {
+		if goldPrice.PriceDate != now {
+			goldPrice.RefBuy = goldPrice.Buy
+			goldPrice.LowBuy = goldPrice.Buy
+			goldPrice.HighBuy = goldPrice.Buy
+			goldPrice.RefSell = goldPrice.Sell
+			goldPrice.LowSell = goldPrice.Sell
+			goldPrice.HighSell = goldPrice.Sell
+			goldPrice.PriceDate = now
+
+			syncNewDay = true
+		}
+
 		builder.WriteString(fmt.Sprintf("\n\n<b>%s</b>", goldPrice.GoldName))
 
 		formatPrice(&builder, printer, goldPrice.RefBuy, goldPrice.Buy, "Mua vào", false)
@@ -1616,6 +1682,12 @@ func board(s *store.Store, title string) (string, error) {
 	}
 
 	builder.WriteString("\n\n<i>(Đơn vị tính: nghìn đồng/chỉ)</i>")
+
+	if syncNewDay {
+		if err = HandleNewDay(ctx); err != nil {
+			log.Error().Err(err).Send()
+		}
+	}
 
 	return builder.String(), nil
 }
@@ -1746,4 +1818,38 @@ func (t *Telegram) sendFeedback(feedback string) {
 	if err != nil {
 		log.Error().Err(err).Send()
 	}
+}
+
+func HandleNewDay(ctx *context.Context) error {
+	now := time.Now().In(ctx.Config.TimeLocation).Format(time.DateOnly)
+
+	return ctx.Store.SQL.WithTx(func(tx *sql.Tx) error {
+		if _, err := tx.Exec(
+			`update gold_price_latest
+			set price_date = ?,
+			    ref_buy = buy,
+				low_buy = buy,
+				high_buy = buy,
+				ref_sell = sell,
+				low_sell = sell,
+				high_sell = sell
+			where price_date < ?`,
+			now,
+		); err != nil {
+			return err
+		}
+
+		if _, err := tx.Exec(
+			`insert or ignore into gold_price_history
+    		(gold_id, price_date, buy, low_buy, high_buy, sell, low_sell, high_sell)
+			select gold_id, price_date, buy, low_buy, high_buy, buy, low_sell, high_sell
+			from gold_price_latest
+			where price_date = ?`,
+			now,
+		); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

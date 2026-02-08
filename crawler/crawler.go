@@ -373,7 +373,7 @@ func (cr *Crawler) saveGoldPrice(priceDate string, goldID, buy, sell int) error 
 			return err
 		}
 
-		_, err := tx.Exec(
+		if _, err := tx.Exec(
 			`insert into gold_price_history (gold_id, price_date, buy, low_buy, high_buy, sell, low_sell, high_sell)
 			values (?, ?, ?, ?, ?, ?, ?, ?)
 			on conflict (gold_id, price_date) do update
@@ -387,8 +387,7 @@ func (cr *Crawler) saveGoldPrice(priceDate string, goldID, buy, sell int) error 
 				excluded.buy != buy
 				or excluded.sell != sell`,
 			goldID, priceDate, buy, buy, buy, sell, sell, sell,
-		)
-		if err != nil {
+		); err != nil {
 			return err
 		}
 
