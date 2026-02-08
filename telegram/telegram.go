@@ -146,7 +146,7 @@ var (
 	}
 	FeedbackCommand = BotCommand{
 		Command:     "/feedback",
-		Description: "Gửi góp ý cải thiện bot",
+		Description: "Gửi góp ý cải thiện Bot",
 	}
 	DonateCommand = BotCommand{
 		Command:     "/donate",
@@ -360,19 +360,19 @@ var IntroFunc = func(ctx *context.Context, id int, params ...string) (*BotMessag
 			InlineKeyboard: [][]InlineKeyboardButton{
 				{
 					{
-						Text:         "Cập nhật giá vàng mới nhất",
+						Text:         LiveCommand.Description,
 						CallbackData: LiveCode,
 					},
 				},
 				{
 					{
-						Text:         "Thiết lập thông báo giá vàng",
+						Text:         NotifCommand.Description,
 						CallbackData: NotifCode,
 					},
 				},
 				{
 					{
-						Text:         "Tra cứu lịch sử giá vàng",
+						Text:         HistoryCommand.Description,
 						CallbackData: HistoryCode,
 					},
 				},
@@ -1154,9 +1154,9 @@ var GoldPriceHistoryFunc = func(ctx *context.Context, chatID int, params ...stri
 
 var FeedbackFunc = func(ctx *context.Context, chatID int, params ...string) (*BotMessage, error) {
 	builder := strings.Builder{}
-	builder.WriteString("<b>Gửi góp ý cải thiện bot theo cú pháp</b>")
+	builder.WriteString("<b>Gửi góp ý cải thiện Bot theo cú pháp</b>")
 	builder.WriteString("\n<b><i><code>#feedback</code> 'nội dung'</i></b>")
-	builder.WriteString("\n\n<i>Ví dụ: <code>#feedback</code> thật tuyệt!!!</i>")
+	builder.WriteString("\n\n<b><i>Ví dụ: <code>#feedback</code> Bot rất hữu ích!!!</i></b>")
 
 	return &BotMessage{
 		ParseMode: "HTML",
