@@ -265,12 +265,14 @@ func (t *Telegram) handStartCommand(chat Chat) {
 		log.Error().Err(err).Send()
 	}
 
-	if err := t.SendMessage(SendMessageRequest{
-		ChatID:    chat.ID,
-		ParseMode: "HTML",
-		Text:      fmt.Sprintf("<b>🖐🏻 Chào mừng %s %s đến với 🐶 Cậu Vàng\n\nRất vui được đồng hành cùng bạn!</b>", chat.LastName, chat.FirstName),
-	}); err != nil {
-		log.Error().Err(err).Send()
+	if chat.Type == "private" {
+		if err := t.SendMessage(SendMessageRequest{
+			ChatID:    chat.ID,
+			ParseMode: "HTML",
+			Text:      fmt.Sprintf("<b>🖐🏻 Chào mừng %s %s đến với 🐶 Cậu Vàng\n\nRất vui được đồng hành cùng bạn!</b>", chat.LastName, chat.FirstName),
+		}); err != nil {
+			log.Error().Err(err).Send()
+		}
 	}
 }
 
