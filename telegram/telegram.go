@@ -368,21 +368,9 @@ func (t *Telegram) FindBotMessage(chatID int, code string) (*BotMessage, error) 
 }
 
 var IntroFunc = func(ctx *context.Context, id int, params ...string) (*BotMessage, error) {
-	builder := strings.Builder{}
-
-	builder.WriteString("<b>🐶 Cậu Vàng - Trợ lý thông minh</b>")
-
-	for _, cmd := range BotCommands {
-		builder.WriteString("\n\n<i><code><i>")
-		builder.WriteString(cmd.Command)
-		builder.WriteString("</i></code> - ")
-		builder.WriteString(cmd.Description)
-		builder.WriteString("</i>")
-	}
-
 	return &BotMessage{
 		ParseMode: "HTML",
-		Text:      builder.String(),
+		Text:      "<b>🐶 Cậu Vàng - Trợ lý thông minh</b>",
 		ReplyMarkup: &ReplyMarkup{
 			InlineKeyboard: [][]InlineKeyboardButton{
 				{
@@ -441,6 +429,12 @@ var LiveFunc = func(ctx *context.Context, chatID int, params ...string) (*BotMes
 						CallbackData: LiveCode,
 					},
 				},
+				{
+					{
+						Text:         "<< Quay lại",
+						CallbackData: IntroCode,
+					},
+				},
 			},
 		},
 	}, nil
@@ -462,6 +456,12 @@ var NotifFunc = func(ctx *context.Context, chatID int, params ...string) (*BotMe
 					{
 						Text:         "Đặt lịch thông báo hàng ngày",
 						CallbackData: SchedulesCode,
+					},
+				},
+				{
+					{
+						Text:         "<< Quay lại",
+						CallbackData: IntroCode,
 					},
 				},
 			},
@@ -1032,6 +1032,13 @@ var HistoryFunc = func(ctx *context.Context, chatID int, params ...string) (*Bot
 		})
 	}
 
+	inlineKeyboard = append(inlineKeyboard, []InlineKeyboardButton{
+		{
+			Text:         "<< Quay lại",
+			CallbackData: IntroCode,
+		},
+	})
+
 	return &BotMessage{
 		ParseMode: "HTML",
 		Text:      "<b>Chọn sản phẩm để xem lịch sử giá vàng</b>",
@@ -1182,6 +1189,16 @@ var FeedbackFunc = func(ctx *context.Context, chatID int, params ...string) (*Bo
 	return &BotMessage{
 		ParseMode: "HTML",
 		Text:      builder.String(),
+		ReplyMarkup: &ReplyMarkup{
+			InlineKeyboard: [][]InlineKeyboardButton{
+				{
+					{
+						Text:         "<< Quay lại",
+						CallbackData: IntroCode,
+					},
+				},
+			},
+		},
 	}, nil
 }
 
@@ -1189,6 +1206,16 @@ var DonateFunc = func(ctx *context.Context, chatID int, params ...string) (*BotM
 	return &BotMessage{
 		ParseMode: "HTML",
 		Text:      "<b>🌱 Đồng hành cùng 🐶 Cậu Vàng. Quét mã QR để chuyển khoản\n\nXin cảm ơn sự đóng góp của bạn!</b>",
+		ReplyMarkup: &ReplyMarkup{
+			InlineKeyboard: [][]InlineKeyboardButton{
+				{
+					{
+						Text:         "<< Quay lại",
+						CallbackData: IntroCode,
+					},
+				},
+			},
+		},
 	}, nil
 }
 
