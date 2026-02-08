@@ -268,10 +268,19 @@ func (t *Telegram) handleMyChatMember(chat Chat) {
 		log.Error().Err(err).Send()
 	}
 
+	builder := strings.Builder{}
+
+	builder.WriteString(fmt.Sprintf("<b>🖐🏻 🐶 Cậu Vàng xin chào nhóm"))
+	if chat.Title != "" {
+		builder.WriteString(fmt.Sprintf(" %s", chat.Title))
+	}
+
+	builder.WriteString("\n\nRất vui được đồng hành cùng các thành viên!</b>")
+
 	if err := t.SendMessage(SendMessageRequest{
 		ChatID:    chat.ID,
 		ParseMode: "HTML",
-		Text:      fmt.Sprintf("<b>🖐🏻 🐶 Cậu Vàng xin chào nhóm %s\n\nRất vui được đồng hành cùng các thành viên!</b>", chat.Title),
+		Text:      builder.String(),
 	}); err != nil {
 		log.Error().Err(err).Send()
 	}
@@ -283,10 +292,22 @@ func (t *Telegram) handStartCommand(chat Chat) {
 			log.Error().Err(err).Send()
 		}
 
+		builder := strings.Builder{}
+
+		builder.WriteString(fmt.Sprintf("<b>🖐🏻 Chào mừng"))
+		if chat.FirstName != "" {
+			builder.WriteString(fmt.Sprintf(" %s", chat.FirstName))
+		}
+		if chat.LastName != "" {
+			builder.WriteString(fmt.Sprintf(" %s", chat.LastName))
+		}
+
+		builder.WriteString(" đến với 🐶 Cậu Vàng\n\nRất vui được đồng hành cùng bạn!</b>")
+
 		if err := t.SendMessage(SendMessageRequest{
 			ChatID:    chat.ID,
 			ParseMode: "HTML",
-			Text:      fmt.Sprintf("<b>🖐🏻 Chào mừng %s %s đến với 🐶 Cậu Vàng\n\nRất vui được đồng hành cùng bạn!</b>", chat.LastName, chat.FirstName),
+			Text:      builder.String(),
 		}); err != nil {
 			log.Error().Err(err).Send()
 		}
@@ -302,10 +323,22 @@ func (t *Telegram) handleFeedback(chat Chat, text string) {
 		log.Error().Err(err).Send()
 	}
 
-	t.sendFeedback(fmt.Sprintf("<b>chat_id: %d\n\nusername: %s\n\nfull_name: %s\n\nfeedback: %s</b>",
-		chat.ID, chat.Username, chat.LastName+" "+chat.FirstName,
-		strings.TrimSpace(strings.TrimPrefix(text, Feedback)),
-	))
+	feedback := fmt.Sprintf("<b>chat_id: %d", chat.ID)
+	if chat.Username != "" {
+		feedback += fmt.Sprintf("\n\nusername: %s", chat.Username)
+	}
+	if chat.FirstName != "" {
+		feedback += fmt.Sprintf("\n\nfirst_name: %s", chat.FirstName)
+	}
+	if chat.LastName != "" {
+		feedback += fmt.Sprintf("\n\nlast_name: %s", chat.LastName)
+	}
+	if chat.Title != "" {
+		feedback += fmt.Sprintf("\n\ntitle: %s", chat.Title)
+	}
+	feedback += fmt.Sprintf("\n\nfeedback: %s</b>", strings.TrimSpace(strings.TrimPrefix(text, Feedback)))
+
+	t.sendFeedback(feedback)
 }
 
 func (t *Telegram) handleCallbackQuery(wp *workerpool.WorkerPool, callbackQuery *CallbackQuery) {
