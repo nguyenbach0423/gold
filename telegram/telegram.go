@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"slices"
 	"sort"
 	"strconv"
@@ -212,27 +211,18 @@ const (
 
 func (t *Telegram) handleMessage(wp *workerpool.WorkerPool, message *Message) {
 	wp.Submit(func() {
-		text := strings.TrimSpace(message.Text)
-		if strings.HasPrefix(strings.ToLower(text), Feedback) {
-			if err := t.SendMessage(SendMessageRequest{
-				ChatID:    message.Chat.ID,
-				ParseMode: "HTML",
-				Text:      "<b>🤝 Cảm ơn góp ý của bạn!</b>",
-			}); err != nil {
-				log.Error().Err(err).Send()
-			}
-
-			t.sendFeedback(fmt.Sprintf("<b>chat_id: %d\n\nusername: %s\n\nfull_name: %s\n\nfeedback: <i>%s</i></b>",
-				message.Chat.ID, message.Chat.Username, message.Chat.LastName+" "+message.Chat.FirstName,
-				strings.TrimSpace(strings.TrimPrefix(text, Feedback)),
-			))
-
+		text := strings.ToLower(strings.TrimSpace(message.Text))
+		if strings.HasPrefix(text, Feedback) {
+			t.handleFeedback(message.Chat, text)
 			return
 		}
 
 		var code string
 
 		switch text {
+		case StartCommand.Command:
+			t.handStartCommand(message.Chat)
+			code = IntroCode
 		case LiveCommand.Command:
 			code = LiveCode
 		case NotifCommand.Command:
@@ -247,20 +237,6 @@ func (t *Telegram) handleMessage(wp *workerpool.WorkerPool, message *Message) {
 			code = IntroCode
 		}
 
-		if text == StartCommand.Command {
-			if err := t.saveChat(message.Chat); err != nil {
-				log.Error().Err(err).Send()
-			}
-
-			if err := t.SendMessage(SendMessageRequest{
-				ChatID:    message.Chat.ID,
-				ParseMode: "HTML",
-				Text:      fmt.Sprintf("<b>🎉🎉🎉 Chào mừng %s %s đến với 🐶 Cậu Vàng!</b>", message.Chat.LastName, message.Chat.FirstName),
-			}); err != nil {
-				log.Error().Err(err).Send()
-			}
-		}
-
 		botMessage, err := t.FindBotMessage(message.Chat.ID, code)
 		if err != nil {
 			log.Error().Err(err).Send()
@@ -271,37 +247,46 @@ func (t *Telegram) handleMessage(wp *workerpool.WorkerPool, message *Message) {
 			return
 		}
 
-		if code == DonateCode {
-			var photo []byte
-			photo, err = os.ReadFile(t.Ctx.Config.Bot.QRFilename)
-			if err != nil {
-				log.Error().Err(err).Send()
-				return
-			}
-			req := SendPhotoRequest{
-				ChatID:    message.Chat.ID,
-				ParseMode: botMessage.ParseMode,
-				Caption:   botMessage.Text,
-				Filename:  t.Ctx.Config.Bot.QRFilename,
-				Photo:     photo,
-			}
+		req := SendMessageRequest{
+			ChatID:      message.Chat.ID,
+			ParseMode:   botMessage.ParseMode,
+			Text:        botMessage.Text,
+			ReplyMarkup: botMessage.ReplyMarkup,
+		}
 
-			if err = t.sendPhoto(req); err != nil {
-				log.Error().Err(err).Send()
-			}
-		} else {
-			req := SendMessageRequest{
-				ChatID:      message.Chat.ID,
-				ParseMode:   botMessage.ParseMode,
-				Text:        botMessage.Text,
-				ReplyMarkup: botMessage.ReplyMarkup,
-			}
-
-			if err = t.SendMessage(req); err != nil {
-				log.Error().Err(err).Send()
-			}
+		if err = t.SendMessage(req); err != nil {
+			log.Error().Err(err).Send()
 		}
 	})
+}
+
+func (t *Telegram) handStartCommand(chat Chat) {
+	if err := t.saveChat(chat); err != nil {
+		log.Error().Err(err).Send()
+	}
+
+	if err := t.SendMessage(SendMessageRequest{
+		ChatID:    chat.ID,
+		ParseMode: "HTML",
+		Text:      fmt.Sprintf("<b>🎉🎉🎉 Chào mừng %s %s đến với 🐶 Cậu Vàng!</b>", chat.LastName, chat.FirstName),
+	}); err != nil {
+		log.Error().Err(err).Send()
+	}
+}
+
+func (t *Telegram) handleFeedback(chat Chat, text string) {
+	if err := t.SendMessage(SendMessageRequest{
+		ChatID:    chat.ID,
+		ParseMode: "HTML",
+		Text:      "<b>🤝 Cảm ơn góp ý của bạn!</b>",
+	}); err != nil {
+		log.Error().Err(err).Send()
+	}
+
+	t.sendFeedback(fmt.Sprintf("<b>chat_id: %d\n\nusername: %s\n\nfull_name: %s\n\nfeedback: <i>%s</i></b>",
+		chat.ID, chat.Username, chat.LastName+" "+chat.FirstName,
+		strings.TrimSpace(strings.TrimPrefix(text, Feedback)),
+	))
 }
 
 func (t *Telegram) handleCallbackQuery(wp *workerpool.WorkerPool, callbackQuery *CallbackQuery) {
@@ -389,18 +374,6 @@ var IntroFunc = func(ctx *context.Context, id int, params ...string) (*BotMessag
 					{
 						Text:         "Tra cứu lịch sử giá vàng",
 						CallbackData: HistoryCode,
-					},
-				},
-				{
-					{
-						Text:         "Gửi góp ý cải thiện bot",
-						CallbackData: FeedbackCode,
-					},
-				},
-				{
-					{
-						Text:         "☕︎ Buy me a coffee",
-						CallbackData: DonateCode,
 					},
 				},
 			},

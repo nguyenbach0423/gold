@@ -44,8 +44,6 @@ type BotConfig struct {
 	URL                    string
 	FeedbackBotURL         string
 	FeedbackReceiverChatID int
-	QRFilename             string
-	QRRemoteFileID         string
 }
 
 func New() (*Context, error) {
@@ -82,8 +80,6 @@ func New() (*Context, error) {
 		URL:                    os.Getenv("BOT_URL"),
 		FeedbackBotURL:         os.Getenv("FEEDBACK_BOT_URL"),
 		FeedbackReceiverChatID: feedbackReceiverChatID,
-		QRFilename:             os.Getenv("QR_FILENAME"),
-		QRRemoteFileID:         os.Getenv("QR_REMOTE_FILE_ID"),
 	}
 
 	if botCfg.Suffix == "" {
@@ -113,10 +109,6 @@ func New() (*Context, error) {
 	}
 
 	if err = d.DownloadFile(cfg.SQLiteRemoteFileID, cfg.SQLiteFilename); err != nil {
-		return nil, err
-	}
-
-	if err = d.DownloadFile(cfg.Bot.QRRemoteFileID, cfg.Bot.QRFilename); err != nil {
 		return nil, err
 	}
 
