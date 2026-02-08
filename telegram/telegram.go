@@ -1894,7 +1894,7 @@ func HandleNewDay(ctx *context.Context) error {
 		if _, err := tx.Exec(
 			`insert or ignore into gold_price_history
     		(gold_id, price_date, buy, low_buy, high_buy, sell, low_sell, high_sell)
-			select gold_id, price_date, buy, low_buy, high_buy, buy, low_sell, high_sell
+			select gold_id, price_date, buy, low_buy, high_buy, sell, low_sell, high_sell
 			from gold_price_latest
 			where price_date = ?`,
 			now,
