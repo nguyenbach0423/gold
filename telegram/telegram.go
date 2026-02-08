@@ -1087,7 +1087,7 @@ var GoldPriceHistoryFunc = func(ctx *context.Context, chatID int, params ...stri
 		builder.WriteString("\n\n<b>Chi tiết giá vàng từng tháng trong năm:</b>")
 	}
 
-	for _, goldPrice := range goldPrices {
+	for i, goldPrice := range goldPrices {
 		switch timeRange {
 		case Day:
 			if goldPrice.PriceDate != t.Format(time.DateOnly) {
@@ -1111,6 +1111,9 @@ var GoldPriceHistoryFunc = func(ctx *context.Context, chatID int, params ...stri
 			}
 			builder.WriteString(printer.Sprintf("\n<i> ✦ %s - Mua vào: %d - Bán ra: %d</i>", priceDate.Format("02/01/2006"), goldPrice.Buy, goldPrice.Sell))
 		case Year:
+			if i == len(goldPrices)-1 {
+				continue
+			}
 			priceDate, err := time.Parse(time.DateOnly, goldPrice.PriceDate)
 			if err != nil {
 				return nil, err
