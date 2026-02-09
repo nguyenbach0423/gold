@@ -261,7 +261,7 @@ func (cr *Crawler) runTasks(wp *workerpool.WorkerPool, bot *telegram.Telegram, t
 	}
 
 	for _, res := range results {
-		if res == true {
+		if res {
 			wp.Submit(func() {
 				notif.SendVolatilityNotif(cr.Ctx, wp, bot)
 			})
