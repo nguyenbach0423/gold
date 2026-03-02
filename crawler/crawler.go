@@ -171,7 +171,7 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 				`\d{2}:\d{2}\s\d{2}/\d{2}/\d{4}`,
 				"15:04 02/01/2006",
 				4,
-				"nhẫn tròn 9999 hưng thịnh vượng (nghìn/chỉ)",
+				"nhẫn tròn 9999 hưng thịnh vượng(nghìn/chỉ)",
 				0,
 				1,
 				2,
