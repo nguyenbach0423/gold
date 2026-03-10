@@ -198,7 +198,7 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 
 			var body struct {
 				DataList struct {
-					GoldPrices map[string]string `json:"Data"`
+					GoldPrices []map[string]string `json:"Data"`
 				} `json:"DataList"`
 			}
 
@@ -207,19 +207,19 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 			}
 
 			for i := 1; i <= len(body.DataList.GoldPrices); i++ {
-				if strings.ToLower(strings.TrimSpace(body.DataList.GoldPrices[fmt.Sprintf("@n_%d", i)])) != "nhẫn tròn trơn (vàng rồng thăng long)" {
+				if strings.ToLower(strings.TrimSpace(body.DataList.GoldPrices[i-1][fmt.Sprintf("@n_%d", i)])) != "nhẫn tròn trơn (vàng rồng thăng long)" {
 					var priceDate time.Time
-					if priceDate, err = time.Parse("02/01/2026 15:04", strings.TrimSpace(body.DataList.GoldPrices[fmt.Sprintf("@d_%d", i)])); err != nil {
+					if priceDate, err = time.Parse("02/01/2026 15:04", strings.TrimSpace(body.DataList.GoldPrices[i-1][fmt.Sprintf("@d_%d", i)])); err != nil {
 						return false, err
 					}
 
 					var buy int
-					if buy, err = cr.parsePrice(strings.TrimSpace(body.DataList.GoldPrices[fmt.Sprintf("@pb_%d", i)]), 1000); err != nil {
+					if buy, err = cr.parsePrice(strings.TrimSpace(body.DataList.GoldPrices[i-1][fmt.Sprintf("@pb_%d", i)]), 1000); err != nil {
 						return false, err
 					}
 
 					var sell int
-					if sell, err = cr.parsePrice(strings.TrimSpace(body.DataList.GoldPrices[fmt.Sprintf("@ps_%d", i)]), 1000); err != nil {
+					if sell, err = cr.parsePrice(strings.TrimSpace(body.DataList.GoldPrices[i-1][fmt.Sprintf("@ps_%d", i)]), 1000); err != nil {
 						return false, err
 					}
 
