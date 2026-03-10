@@ -179,19 +179,62 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 			)
 		},
 		func() (bool, error) {
-			return cr.fromHTML(
-				"https://btmc.vn",
-				"table.bd_price_home",
-				"p.note span",
-				`\d{2}/\d{2}/\d{4}\s\d{2}:\d{2}`,
-				"02/01/2006 15:04",
-				5,
-				"nhẫn tròn trơn bảo tín minh châu",
-				0,
-				2,
-				3,
-				1,
+			resp, err := cr.Ctx.CrawlerHTTPClient.Do(
+				&request.Request{
+					Method: http.MethodGet,
+					URL:    "http://api.btmc.vn/api/BTMCAPI/getpricebtmc",
+					QueryParams: map[string][]string{
+						"key": {"3kd8ub1llcg9t45hnoh8hmn7t5kc2v"},
+					},
+				},
 			)
+			if err != nil {
+				return false, err
+			}
+
+			if resp.Status != http.StatusOK {
+				return false, nil
+			}
+
+			var body struct {
+				DataList struct {
+					GoldPrices map[string]string `json:"Data"`
+				} `json:"DataList"`
+			}
+
+			if err = json.Unmarshal(resp.Body, &body); err != nil {
+				return false, err
+			}
+
+			for i := 1; i <= len(body.DataList.GoldPrices); i++ {
+				if strings.ToLower(strings.TrimSpace(body.DataList.GoldPrices[fmt.Sprintf("@n_%d", i)])) != "nhẫn tròn trơn (vàng rồng thăng long)" {
+					var priceDate time.Time
+					if priceDate, err = time.Parse("02/01/2026 15:04", strings.TrimSpace(body.DataList.GoldPrices[fmt.Sprintf("@d_%d", i)])); err != nil {
+						return false, err
+					}
+
+					var buy int
+					if buy, err = cr.parsePrice(strings.TrimSpace(body.DataList.GoldPrices[fmt.Sprintf("@pb_%d", i)]), 1000); err != nil {
+						return false, err
+					}
+
+					var sell int
+					if sell, err = cr.parsePrice(strings.TrimSpace(body.DataList.GoldPrices[fmt.Sprintf("@ps_%d", i)]), 1000); err != nil {
+						return false, err
+					}
+
+					if err = cr.saveGoldPrice(priceDate.Format(time.DateOnly), 4, buy, sell); err != nil {
+						if errors.Is(err, sql.ErrNoRows) {
+							return false, nil
+						}
+						return false, err
+					}
+					
+					return true, nil
+				}
+			}
+			
+			return false, nil
 		},
 		func() (bool, error) {
 			return cr.fromHTML(
