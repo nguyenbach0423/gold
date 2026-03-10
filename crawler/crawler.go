@@ -223,7 +223,7 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 						return false, err
 					}
 
-					if err = cr.saveGoldPrice(priceDate.Format(time.DateOnly), 4, buy, sell); err != nil {
+					if err = cr.saveGoldPrice(priceDate.Format(time.DateOnly), 5, buy, sell); err != nil {
 						if errors.Is(err, sql.ErrNoRows) {
 							return false, nil
 						}
