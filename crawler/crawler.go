@@ -209,7 +209,7 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 			for i := 1; i <= len(body.DataList.GoldPrices); i++ {
 				if strings.ToLower(strings.TrimSpace(body.DataList.GoldPrices[i-1][fmt.Sprintf("@n_%d", i)])) != "nhẫn tròn trơn (vàng rồng thăng long)" {
 					var priceDate time.Time
-					if priceDate, err = time.Parse("02/01/2026 15:04", strings.TrimSpace(body.DataList.GoldPrices[i-1][fmt.Sprintf("@d_%d", i)])); err != nil {
+					if priceDate, err = time.Parse("02/01/2006 15:04", strings.TrimSpace(body.DataList.GoldPrices[i-1][fmt.Sprintf("@d_%d", i)])); err != nil {
 						return false, err
 					}
 
