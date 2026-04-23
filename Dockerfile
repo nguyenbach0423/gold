@@ -13,6 +13,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o gold .
 FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates tzdata && \
+    update-ca-certificates && \
     addgroup -g 1000 -S bot && \
     adduser -u 1000 -S -D -G bot -s /sbin/nologin bot
 
