@@ -134,8 +134,8 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 				PriceDate  string `json:"updateDate"`
 				GoldPrices []struct {
 					GoldCode string `json:"masp"`
-					Buy      int    `json:"giamua"`
-					Sell     int    `json:"giaban"`
+					Buy      *int    `json:"giamua"`
+					Sell     *int    `json:"giaban"`
 				} `json:"data"`
 			}
 
@@ -150,7 +150,15 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 
 			for _, goldPrice := range body.GoldPrices {
 				if goldPrice.GoldCode == "N24K" {
-					err = cr.saveGoldPrice(priceDate.Format(time.DateOnly), 3, goldPrice.Buy, goldPrice.Sell)
+					buy := 0
+					sell := 0
+					if goldPrice.Buy != nil {
+						buy = *goldPrice.Buy
+					}
+					if goldPrice.Sell != nil {
+						sell = *goldPrice.Sell
+					}
+					err = cr.saveGoldPrice(priceDate.Format(time.DateOnly), 3, buy, sell)
 					if err != nil {
 						if errors.Is(err, sql.ErrNoRows) {
 							return false, nil
