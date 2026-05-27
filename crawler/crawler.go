@@ -249,7 +249,7 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 				"table.gold-table-content",
 				"p.note",
 				`\d{2}:\d{2}\s\d{2}/\d{2}/\d{4}`,
-				"15:04 02/01/2006",
+				"2006-01-02 15:04:05.000",
 				6,
 				"nhẫn tròn ép vỉ (kim gia bảo ) 24k (999.9)",
 				0,
