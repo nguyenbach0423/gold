@@ -396,6 +396,7 @@ func (cr *Crawler) parsePrice(s string, divisor int) (int, error) {
 	s = strings.TrimSpace(s)
 
 	s = strings.ReplaceAll(s, ".", "")
+	
 	s = strings.ReplaceAll(s, ",", "")
 
 	n, err := strconv.Atoi(s)
