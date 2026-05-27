@@ -1,6 +1,7 @@
 package context
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"os"
@@ -156,6 +157,11 @@ func New() (*Context, error) {
 	crawlerHTTPClient := client.Client{
 		HTTPClient: &http.Client{
 			Timeout: 45 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
+			},
 		},
 		RetryConfig: &client.RetryConfig{
 			MaxRetries: 5,
