@@ -169,9 +169,11 @@ func New() (*Context, error) {
 			MaxBackoff: 5 * time.Second,
 		},
 		Headers: map[string]string{
-			"User-Agent": "MrGoldVNBot/1.0 (+https://t.me/mr_gold_vn_bot)",
-			"Accept":     "*/*",
-			"Connection": "keep-alive",
+			"User-Agent":      "MrGoldVNBot/1.0 (+https://t.me/mr_gold_vn_bot)",
+			"Accept":          "application/json, text/plain, */*",
+			"Accept-Language": "vi-VN,vi;q=0.9,en;q=0.8",
+			"Referer":         "https://sjc.com.vn/",
+			"Connection":      "keep-alive",
 		},
 	}
 
