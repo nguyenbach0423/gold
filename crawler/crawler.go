@@ -34,88 +34,88 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 
 	cr.runTasks(
 		wp, bot,
-		func() (bool, error) {
-			resp, err := cr.Ctx.CrawlerHTTPClient.Do(
-				&request.Request{
-					Method: http.MethodGet,
-					URL:    "https://sjc.com.vn/GoldPrice/Services/PriceService.ashx",
-				},
-			)
-			if err != nil {
-				return false, err
-			}
-
-			if resp.Status != http.StatusOK {
-				log.Info().Msg(fmt.Sprintf("SJC - %d", resp.Status))
-				return false, nil
-			}
-
-			var body struct {
-				PriceDate  string `json:"latestDate"`
-				GoldPrices []struct {
-					GoldID int    `json:"Id"`
-					Buy    string `json:"Buy"`
-					Sell   string `json:"Sell"`
-				} `json:"data"`
-			}
-
-			if err = json.Unmarshal(resp.Body, &body); err != nil {
-				return false, err
-			}
-
-			priceDate, err := time.Parse("15:04 02/01/2006", body.PriceDate)
-			if err != nil {
-				return false, err
-			}
-
-			var res bool
-			var foundRows int
-
-			for _, goldPrice := range body.GoldPrices {
-				switch goldPrice.GoldID {
-				case 1:
-					goldPrice.GoldID = 1
-				case 49:
-					goldPrice.GoldID = 2
-				default:
-					continue
-				}
-
-				foundRows++
-
-				var buy int
-				buy, err = cr.parsePrice(goldPrice.Buy, 10)
-				if err != nil {
-					return false, err
-				}
-
-				var sell int
-				sell, err = cr.parsePrice(goldPrice.Sell, 10)
-				if err != nil {
-					return false, err
-				}
-
-				err = cr.saveGoldPrice(priceDate.Format(time.DateOnly), goldPrice.GoldID, buy, sell)
-
-				if err != nil {
-					if errors.Is(err, sql.ErrNoRows) {
-						if foundRows == 2 {
-							break
-						}
-						continue
-					}
-					return false, err
-				}
-
-				res = true
-
-				if foundRows == 2 {
-					break
-				}
-			}
-
-			return res, nil
-		},
+		//func() (bool, error) {
+		//	resp, err := cr.Ctx.CrawlerHTTPClient.Do(
+		//		&request.Request{
+		//			Method: http.MethodGet,
+		//			URL:    "https://sjc.com.vn/GoldPrice/Services/PriceService.ashx",
+		//		},
+		//	)
+		//	if err != nil {
+		//		return false, err
+		//	}
+		//
+		//	if resp.Status != http.StatusOK {
+		//		log.Info().Msg(fmt.Sprintf("SJC - %d", resp.Status))
+		//		return false, nil
+		//	}
+		//
+		//	var body struct {
+		//		PriceDate  string `json:"latestDate"`
+		//		GoldPrices []struct {
+		//			GoldID int    `json:"Id"`
+		//			Buy    string `json:"Buy"`
+		//			Sell   string `json:"Sell"`
+		//		} `json:"data"`
+		//	}
+		//
+		//	if err = json.Unmarshal(resp.Body, &body); err != nil {
+		//		return false, err
+		//	}
+		//
+		//	priceDate, err := time.Parse("15:04 02/01/2006", body.PriceDate)
+		//	if err != nil {
+		//		return false, err
+		//	}
+		//
+		//	var res bool
+		//	var foundRows int
+		//
+		//	for _, goldPrice := range body.GoldPrices {
+		//		switch goldPrice.GoldID {
+		//		case 1:
+		//			goldPrice.GoldID = 1
+		//		case 49:
+		//			goldPrice.GoldID = 2
+		//		default:
+		//			continue
+		//		}
+		//
+		//		foundRows++
+		//
+		//		var buy int
+		//		buy, err = cr.parsePrice(goldPrice.Buy, 10)
+		//		if err != nil {
+		//			return false, err
+		//		}
+		//
+		//		var sell int
+		//		sell, err = cr.parsePrice(goldPrice.Sell, 10)
+		//		if err != nil {
+		//			return false, err
+		//		}
+		//
+		//		err = cr.saveGoldPrice(priceDate.Format(time.DateOnly), goldPrice.GoldID, buy, sell)
+		//
+		//		if err != nil {
+		//			if errors.Is(err, sql.ErrNoRows) {
+		//				if foundRows == 2 {
+		//					break
+		//				}
+		//				continue
+		//			}
+		//			return false, err
+		//		}
+		//
+		//		res = true
+		//
+		//		if foundRows == 2 {
+		//			break
+		//		}
+		//	}
+		//
+		//	return res, nil
+		//},
 		func() (bool, error) {
 			resp, err := cr.Ctx.CrawlerHTTPClient.Do(
 				&request.Request{
@@ -245,10 +245,40 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 		},
 		func() (bool, error) {
 			return cr.fromHTML(
+				"https://sjc.com.vn/gia-vang-online",
+				"table.sjc-table-show-price-online",
+				"span.sjc-gold-price-real-time",
+				`\d{2}:\d{2}\s\d{2}/\d{2}/\d{4}`,
+				"15:04 02/01/2006",
+				1,
+				"vàng sjc 1l, 10l, 1kg",
+				0,
+				1,
+				2,
+				10000,
+			)
+		},
+		func() (bool, error) {
+			return cr.fromHTML(
+				"https://sjc.com.vn/gia-vang-online",
+				"table.sjc-table-show-price-online",
+				"span.sjc-gold-price-real-time",
+				`\d{2}:\d{2}\s\d{2}/\d{2}/\d{4}`,
+				"15:04 02/01/2006",
+				2,
+				"vàng nhẫn sjc 99,99% 1 chỉ, 2 chỉ, 5 chỉ",
+				0,
+				1,
+				2,
+				10000,
+			)
+		},
+		func() (bool, error) {
+			return cr.fromHTML(
 				"https://baotinmanhhai.vn/gia-vang-hom-nay",
 				"table.gold-table-content",
 				"p.note",
-				`\d{2}:\d{2}\s\d{2}/\d{2}/\d{4}`,
+				`\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}.\d{3}`,
 				"2006-01-02 15:04:05.000",
 				6,
 				"nhẫn tròn ép vỉ (kim gia bảo ) 24k (999.9)",
