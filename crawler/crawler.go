@@ -63,6 +63,9 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 			}
 
 			priceDate, err := time.Parse("15:04 02/01/2006", body.PriceDate)
+			if err != nil {
+				return false, err
+			}
 
 			var res bool
 			var foundRows int
@@ -133,9 +136,9 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 			var body struct {
 				PriceDate  string `json:"updateDate"`
 				GoldPrices []struct {
-					GoldCode string `json:"masp"`
-					Buy      *int   `json:"giamua"`
-					Sell     *int   `json:"giaban"`
+					GoldCode string     `json:"masp"`
+					Buy      IntOrEmpty `json:"giamua"`
+					Sell     IntOrEmpty `json:"giaban"`
 				} `json:"data"`
 			}
 
@@ -150,15 +153,8 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 
 			for _, goldPrice := range body.GoldPrices {
 				if goldPrice.GoldCode == "N24K" {
-					buy := 0
-					if goldPrice.Buy != nil {
-						buy = *goldPrice.Buy
-					}
-
-					sell := 0
-					if goldPrice.Sell != nil {
-						sell = *goldPrice.Sell
-					}
+					buy := int(goldPrice.Buy)
+					sell := int(goldPrice.Sell)
 
 					err = cr.saveGoldPrice(priceDate.Format(time.DateOnly), 3, buy, sell)
 					if err != nil {
@@ -396,7 +392,6 @@ func (cr *Crawler) parsePrice(s string, divisor int) (int, error) {
 	s = strings.TrimSpace(s)
 
 	s = strings.ReplaceAll(s, ".", "")
-	
 	s = strings.ReplaceAll(s, ",", "")
 
 	n, err := strconv.Atoi(s)
@@ -405,6 +400,25 @@ func (cr *Crawler) parsePrice(s string, divisor int) (int, error) {
 	}
 
 	return n / divisor, nil
+}
+
+type IntOrEmpty int
+
+func (i *IntOrEmpty) UnmarshalJSON(data []byte) error {
+
+	if string(data) == `""` {
+		*i = 0
+		return nil
+	}
+
+	n, err := strconv.Atoi(string(data))
+	if err != nil {
+		return err
+	}
+
+	*i = IntOrEmpty(n)
+
+	return nil
 }
 
 func (cr *Crawler) saveGoldPrice(priceDate string, goldID, buy, sell int) error {

@@ -163,6 +163,7 @@ func New() (*Context, error) {
 			MaxBackoff: 5 * time.Second,
 		},
 		Headers: map[string]string{
+			"User-Agent": "MrGoldVNBot/1.0 (+https://t.me/mr_gold_vn_bot)",
 			"Accept":     "*/*",
 			"Connection": "keep-alive",
 		},
