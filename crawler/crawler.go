@@ -46,6 +46,7 @@ func (cr *Crawler) Run(wp *workerpool.WorkerPool, bot *telegram.Telegram) {
 			}
 
 			if resp.Status != http.StatusOK {
+				log.Info().Msg(fmt.Sprintf("SJC - %d", resp.Status))
 				return false, nil
 			}
 
